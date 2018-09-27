@@ -18,7 +18,7 @@ numBodies  = 5;            % May need to be bigger than expected in event
                            % of surface jumping ( e.g.: at thin parts of 
                            % airfoils).
                            
-% Boundary-plotting options (tricky).
+% Boundary-plotting options (tricksy, beware).
 % Area in which bodies of interest lay, make sure to exclude farfield
 % boundaries.
 areaOfBodies = [-9 0 0.001 2.5];
@@ -66,16 +66,18 @@ else
 end
 
 %% OFFER USER TO TRACK DEVELOPMENT OF A CONTROL NODE.
-trackCNOption = input('\nEnter CN # to track evolution for (press ENTER to not track any).\n','s');
-if isempty(trackCNOption) == 1
+trackCN_option = false;
+trackCN = input('\nEnter CN # to track evolution for (press ENTER to not track any).\n','s');
+if isempty(trackCN) == 1
     fprintf('\nNot tracking CN evolution.\n');
-elseif isnan(str2double(trackCNOption)) == 1
+elseif isnan(str2double(trackCN)) == 1
     error('ERROR: NaN, ensure an integer is entered.');
-elseif str2double(trackCNOption) > NoCN || str2double(trackCNOption) < 0
+elseif str2double(trackCN) > NoCN || str2double(trackCN) < 0
     error('ERROR: Number lies outside of valid CN # range.');
 else
-    trackCNOption = str2double(trackCNOption);
-    fprintf('Tracking evolution of Control Node %d',trackCNOption);
+    trackCN = str2double(trackCN);
+    fprintf('Tracking evolution of Control Node %d',trackCN);
+    trackCN_option = true;
 end
 
 %% PROCESS FITNESS.
@@ -140,13 +142,6 @@ for i = 1:length(CNsFreeIdx)
     CNyBoxCoords(:,i) = [CNsFree(i,2)+CNyrange(CNsFreeIdx(i),1), CNsFree(i,2)+CNyrange(CNsFreeIdx(i),2), CNsFree(i,2)+CNyrange(CNsFreeIdx(i),2), CNsFree(i,2)+CNyrange(CNsFreeIdx(i),1), CNsFree(i,2)+CNyrange(CNsFreeIdx(i),1)];
 end
 
-%% SNAPSHOT ANALYSIS.
-
-% Call function here.
-
-% Plot Nests progression.
-
-
 %% PLOT BASELINE MESH.
 % Read initial baseline mesh.
 filepath = [caseName,'Input_Data/',baselineMesh];
@@ -154,7 +149,7 @@ filepath = [caseName,'Input_Data/',baselineMesh];
 
 % Plot BASELINE MESH.
 figure(f); f = f+1;
-hold on; axis equal; grid on; axis(plotArea);
+hold on; axis equal; axis(plotArea);
 set(gcf, 'Units', 'Normalized', 'OuterPosition', [0, 0, 0.5, 0.5]);
 movegui(f-1,'northeast');
 title('Baseline Mesh.'); xlabel('x-coords'); ylabel('y-coord');
@@ -214,7 +209,7 @@ h(2) = plot(NaN,NaN,'m');
 h(3) = plot(NaN,NaN,'ko','MarkerFaceColor','g');
 h(4) = plot(NaN,NaN,'rx','LineWidth',2);
 h(5) = plot(NaN,NaN,'r.-.');
-legend(h,'Baseline Geometry','Optimised Goemetry','Fixed CNs','Free CNs','CN bounds');
+legend(h,'Baseline Geometry','Optimised Goemetry','Fixed CNs','Free CNs','CN Bounds');
 title('Baseline and Optimised Geometries.');
 
 
@@ -237,9 +232,9 @@ h(1) = plot(NaN,NaN,'k');
 h(2) = plot(NaN,NaN,'ko','MarkerFaceColor','g');
 h(3) = plot(NaN,NaN,'rx','LineWidth',2);
 h(4) = plot(NaN,NaN,'r.-.');
-legend(h,'Mesh','CNs Fixed','CNs Free','CN bounds');
+legend(h,'Mesh','CNs Fixed','CNs Free','CN Bounds');
 
-%% WRITE AND SAVE MESH GIF (IF USER REQUESTS IT).
+%% WRITE AND SAVE MESH GIF (IF USER REQUESTS).
 if strcmpi(gifOption, 'y')
     for i = 1:NoG_actual
         fileID = fopen([caseName,runName,'Output_Data/Geometry',num2str(i),'.dat']);
@@ -293,4 +288,66 @@ if strcmpi(gifOption, 'y')
     close(fig);
     fclose(fileID);
     end
+end
+
+%% SNAPSHOT ANALYSIS (IF USER REQUESTS).
+if trackCN_option == true
+    % Call function here.
+    [topNest_xCoords,topNest_yCoords] = funcReadNests(caseName,runName,trackCN,Ma,NoCN,NoNests,NoG_actual,CNs);
+    
+    % Plot Nests progression.
+    % 2D plot of pure CN coord progression.
+    figure(f); f = f+1;
+    hold on; grid on; axis equal;
+    set(gcf, 'Units', 'Normalized', 'OuterPosition', [0, 0, 0.3, 0.5]);
+    movegui(f-1,'north');
+    title(['Top Nest Coord Progression for CN#',num2str(trackCN)]);
+    xlabel('x-coords'); ylabel('y-coord');
+    % Set axis 20% larger than CN bounds.
+    axis([CNs(trackCN,1)+min(CNxrange(trackCN,:))*1.2 CNs(trackCN,1)+max(CNxrange(trackCN,:))*1.2...
+          CNs(trackCN,2)+min(CNyrange(trackCN,:))*1.2 CNs(trackCN,2)+max(CNyrange(trackCN,:))*1.5])
+   
+    plot(topNest_xCoords,topNest_yCoords,'LineWidth',1.5)
+    
+    % Plot CN bounding box.
+    hold on;
+    for i = 1:length(CNsFreeIdx)
+    plot(CNxBoxCoords(:,i),CNyBoxCoords(:,i),'r.-.')
+    end
+    
+    h = zeros(2,1);
+    h(1) = plot(NaN,NaN,'b','LineWidth',1.5);
+    h(2) = plot(NaN,NaN,'r.-.');
+    legend(h,'CN Coord Progression','CN Bounds');
+    
+    % Annotate beginning and end of optimisation.
+    hold on;
+    scatter(topNest_xCoords(1,1),topNest_yCoords(1,1),'ro');
+    text(topNest_xCoords(1,1),topNest_yCoords(1,1)-0.01*topNest_yCoords(1,1),'Baseline');
+    scatter(topNest_xCoords(end),topNest_yCoords(end),'ro');
+    text(topNest_xCoords(end),topNest_yCoords(end)+0.01*topNest_yCoords(end),'Optimal');
+
+    
+    % 3D plot showing coords change and corresponding fitness improvement.
+    figure(f); f = f+1;
+    hold on; grid on; axis equal;
+    set(gcf, 'Units', 'Normalized', 'OuterPosition', [0, 0, 0.3, 0.5]);
+    set(gca, 'Color', [0.85 0.85 0.85]);
+    movegui(f-1,'south');
+    title(['Top Nest Coord Progression for CN#',num2str(trackCN),' against Fitness.']);
+    xlabel('x-coords'); ylabel('y-coord'); zlabel('Fitness');
+    axis([CNs(trackCN,1)+min(CNxrange(trackCN,:)) CNs(trackCN,1)+max(CNxrange(trackCN,:))...
+          CNs(trackCN,2)+min(CNyrange(trackCN,:)) CNs(trackCN,2)+max(CNyrange(trackCN,:))...
+          min(fitness(:,1)) max(fitness(:,1))])
+    
+    funcColourLine3D(topNest_xCoords,topNest_yCoords,fitness(:,1),fitness(:,1),'LineWidth',1.5)
+    colormap(jet);
+    view([30 30]);
+    
+    % Annotate beginning and end of optimisation.
+    hold on;
+    scatter3(topNest_xCoords(1,1),topNest_yCoords(1,1),fitness(1,1),'ro');
+    text(topNest_xCoords(1,1),topNest_yCoords(1,1)-0.05*topNest_yCoords(1,1),fitness(1,1),'Baseline');
+    scatter3(topNest_xCoords(end),topNest_yCoords(end),fitness(length(fitness),1),'ro');
+    text(topNest_xCoords(end),topNest_yCoords(end)+0.05*topNest_yCoords(end),fitness(length(fitness),1),'Optimal');
 end

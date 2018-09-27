@@ -202,6 +202,14 @@ scatter(CNsFree(:,1),CNsFree(:,2),'rx','LineWidth',2)
 for i = 1:length(CNsFreeIdx)
     plot(CNxBoxCoords(:,i),CNyBoxCoords(:,i),'r.-.')
 end
+
+% Label CNs.
+CN_label = 1:length(CNs);
+CN_label = strtrim(cellstr(num2str(CN_label'))');
+for i = 1:length(CNs)
+    text(CNs(i,1),CNs(i,2),CN_label{1,i},'VerticalAlignment','bottom','HorizontalAlignment','left');
+end
+
 % Mimic plot formatting to account for additional CN bound entry in legend.
 h = zeros(4,1);
 h(1) = plot(NaN,NaN,'k','LineWidth',1.5);
@@ -340,7 +348,7 @@ if trackCN_option == true
           CNs(trackCN,2)+min(CNyrange(trackCN,:)) CNs(trackCN,2)+max(CNyrange(trackCN,:))...
           min(fitness(:,1)) max(fitness(:,1))])
     
-    funcColourLine3D(topNest_xCoords,topNest_yCoords,fitness(:,1),fitness(:,1),'LineWidth',1.5)
+    funcColourLine3D(topNest_xCoords,topNest_yCoords,fitness(:,1),fitness(:,1),'LineWidth',1.5);
     colormap(jet);
     view([30 30]);
     

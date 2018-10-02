@@ -8,32 +8,32 @@ fprintf('in the USER INPUTS section.\n\n');
 % Make sure case & run names are correct, with each string terminating in 
 % a "/" character.
 % E.g.: caseName = 'XC10_preOpt/' and runName = 'AerOpt2D_3.1_180820_1219/'
-caseName   = 'aerOpt_xc10_fixedRearWing/';
- runName   = 'AerOpt2D_3.1_180830_1504/';
+caseName   = 'aerOpt_xc10_bowProfile/';
+ runName   = 'AerOpt2D_3.1_181001_1712/';
 
 % Post-pro options.
-nestToPlot = 1;            % Set to 1 to plot best nest, 2 for next, etc.
-plotArea   = [-9 0 0 2.5]; % Zoom all plots to area of interest.
-numBodies  = 5;            % May need to be bigger than expected in event 
-                           % of surface jumping ( e.g.: at thin parts of 
-                           % airfoils).
+nestToPlot = 1;             % Set to 1 to plot best nest, 2 for next, etc.
+plotArea   = [-11 1 0 2.5]; % Zoom all plots to area of interest.
+numBodies  = 2;             % May need to be bigger than expected in event 
+                            % of surface jumping ( e.g.: at thin parts of 
+                            % airfoils).
                            
 % Boundary-plotting options (tricksy, beware).
 % Area in which bodies of interest lay, make sure to exclude farfield
 % boundaries.
-areaOfBodies = [-9 0 0.001 2.5];
+areaOfBodies = [-11 1 -0.001 2.5];
 % Set start point for knn search. Try not to start this near thin sections
 % where jumping is likely to occur. For XC10, place at [-8.5 1.5].
 searchPoint  = [-8.5 1.5];
 % Distance between knn jumps for which it should be considered to have 
 % jumped to a new body.
 jumpCriteria = 0.1;
-                           
+
+%% AUTOMATED PARAMETER READ.
 % Read parameters from 'AerOpt_InputParameters.txt' file.
 filepath = [caseName,'Input_Data/AerOpt_InputParameters.txt'];
 [Ma,Tamb,Pamb,R,gamma,Re,Low2Top,NoSnap,NoNests,NoCN,DoF,NoG,objFunc,...
  turbModel,NoSolIter,meshMove,baselineMesh] =funcReadInputParams(filepath);
-
 
 %% WRITE MOST RELEVANT PARAMETERS.
 fprintf('AERODYNAMIC PARAMS:\n');

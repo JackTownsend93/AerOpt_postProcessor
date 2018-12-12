@@ -9,7 +9,7 @@ fprintf('in the USER INPUTS section.\n\n');
 % a "/" character.
 % E.g.: caseName = 'XC10_preOpt/' and runName = 'AerOpt2D_3.1_180820_1219/'
 caseName   = 'aerOpt_xc10_baselineJacksRun/';
- runName   = 'AerOpt2D_3.1_181108_1654/';
+ runName   = 'AerOpt2D_3.1_181101_1251/';
 
 % Post-pro options.
 nestToPlot = 1;             % Set to 1 to plot best nest, 2 for next, etc.

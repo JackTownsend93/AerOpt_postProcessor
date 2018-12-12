@@ -1,9 +1,6 @@
 function [Ma,Tamb,Pamb,R,gamma,Re,Low2Top,NoSnap,NoNests,NoCN,DoF,NoG,...
     objFunc,turbModel,NoSolIter,meshMove,baselineMesh] = funcReadInputParams(filepath)
 
-% NOTE: relies on a consistent format for the input file, with data always
-% on the same line.
-
 % "filepath" directs to "AerOpt_InputParamters.txt" file.
 fid = fopen(filepath,'r');
 
@@ -11,113 +8,259 @@ if fid == -1
     error('ERROR(funcReadInputParams): AerOpt_InputParameters.txt file not found.');
 end
 
-% Skip some lines.
-for i = 1:2
+% Search for parameter name then extract the relevant number or string
+% following that regexp. Note format in InputParamaters file should be:
+%
+%   IV%ParamName = <number or string>   ! Description of parameter.
+%
+% Note the spaces between the equals are important as the third space
+% delimited item is taken.
+
+% Mach number (Ma).
+while ~feof(fid)
     line = fgetl(fid);
+    lineIndex = regexp(line,'Ma');
+    if lineIndex
+        Ma = strsplit(line);
+        Ma = str2double(Ma{3});
+        break
+    else
+        % Not correct line, keep searching.
+    end
 end
+frewind(fid);
 
-% Ambient parameters.
-Ma    = fgetl(fid);
-Ma    = strsplit(Ma);
-Ma    = str2double(Ma{3});
-
-Tamb  = fgetl(fid);
-Tamb  = strsplit(Tamb);
-Tamb  = str2double(Tamb{3});
-
-Pamb  = fgetl(fid);
-Pamb  = strsplit(Pamb);
-Pamb  = str2double(Pamb{3});
-
-R     = fgetl(fid);
-R     = strsplit(R);
-R     = str2double(R{3});
-
-gamma = fgetl(fid);
-gamma = strsplit(gamma);
-gamma = str2double(gamma{3});
-
-Re    = fgetl(fid);
-Re    = strsplit(Re);
-Re    = str2double(Re{3});
-
-% Skip some lines.
-for i = 1:10
+% Ambient temperature (Tamb).
+while ~feof(fid)
     line = fgetl(fid);
+    lineIndex = regexp(line,'Tamb');
+    if lineIndex
+        Tamb = strsplit(line);
+        Tamb = str2double(Tamb{3});
+        break
+    else
+        % Not correct line, keep searching.
+    end
 end
+frewind(fid);
 
-% Optimisation parameters.
-Low2Top = fgetl(fid);
-Low2Top = strsplit(Low2Top);
-Low2Top = str2double(Low2Top{3});
+% Ambient pressure (Pamb).
+while ~feof(fid)
+    line = fgetl(fid);
+    lineIndex = regexp(line,'Pamb');
+    if lineIndex
+        Pamb = strsplit(line);
+        Pamb = str2double(Pamb{3});
+        break
+    else
+        % Not correct line, keep searching.
+    end
+end
+frewind(fid);
 
-NoSnap  = fgetl(fid);
-NoSnap  = strsplit(NoSnap);
-NoSnap  = str2double(NoSnap{3});
+% Specific gas constant (R).
+while ~feof(fid)
+    line = fgetl(fid);
+    lineIndex = regexp(line,'R');
+    if lineIndex
+        R = strsplit(line);
+        R = str2double(R{3});
+        break
+    else
+        % Not correct line, keep searching.
+    end
+end
+frewind(fid);
 
-NoNests = fgetl(fid);
-NoNests = strsplit(NoNests);
-NoNests = str2double(NoNests{3});
+% Specific heat ratio (gamma).
+while ~feof(fid)
+    line = fgetl(fid);
+    lineIndex = regexp(line,'gamma');
+    if lineIndex
+        gamma = strsplit(line);
+        gamma = str2double(gamma{3});
+        break
+    else
+        % Not correct line, keep searching.
+    end
+end
+frewind(fid);
 
-NoCN    = fgetl(fid);
-NoCN    = strsplit(NoCN);
-NoCN    = str2double(NoCN{3});
+% Reynolds number (Re).
+while ~feof(fid)
+    line = fgetl(fid);
+    lineIndex = regexp(line,'Re');
+    if lineIndex
+        Re = strsplit(line);
+        Re = str2double(Re{3});
+        break
+    else
+        % Not correct line, keep searching.
+    end
+end
+frewind(fid);
 
-line    = fgetl(fid);
+% Fraction of low to top cuckoo nests (Low2Top).
+while ~feof(fid)
+    line = fgetl(fid);
+    lineIndex = regexp(line,'Low2Top');
+    if lineIndex
+        Low2Top = strsplit(line);
+        Low2Top = str2double(Low2Top{3});
+        break
+    else
+        % Not correct line, keep searching.
+    end
+end
+frewind(fid);
 
-DoF     = fgetl(fid);
-DoF     = strsplit(DoF);
-DoF     = str2double(DoF{3});
+% Number of snapshots (NoSnap).
+while ~feof(fid)
+    line = fgetl(fid);
+    lineIndex = regexp(line,'NoSnap');
+    if lineIndex
+        NoSnap = strsplit(line);
+        NoSnap = str2double(NoSnap{3});
+        break
+    else
+        % Not correct line, keep searching.
+    end
+end
+frewind(fid);
 
-NoG     = fgetl(fid);
-NoG     = strsplit(NoG);
-NoG     = str2double(NoG{3});
+% Number of Nests (NoNests).
+while ~feof(fid)
+    line = fgetl(fid);
+    lineIndex = regexp(line,'NoNests');
+    if lineIndex
+        NoNests = strsplit(line);
+        NoNests = str2double(NoNests{3});
+        break
+    else
+        % Not correct line, keep searching.
+    end
+end
+frewind(fid);
 
-line    = fgetl(fid);
+% Number of CNs (NoCN).
+while ~feof(fid)
+    line = fgetl(fid);
+    lineIndex = regexp(line,'NoCN');
+    if lineIndex
+        NoCN = strsplit(line);
+        NoCN = str2double(NoCN{3});
+        break
+    else
+        % Not correct line, keep searching.
+    end
+end
+frewind(fid);
 
-objFunc = fgetl(fid);
-objFunc = strsplit(objFunc);
-objFunc = str2double(objFunc{3});
+% Degrees of Freedom (DoF).
+while ~feof(fid)
+    line = fgetl(fid);
+    lineIndex = regexp(line,'DoF');
+    if lineIndex
+        DoF = strsplit(line);
+        DoF = str2double(DoF{3});
+        break
+    else
+        % Not correct line, keep searching.
+    end
+end
+frewind(fid);
+
+% Number of Generations (NoG).
+while ~feof(fid)
+    line = fgetl(fid);
+    lineIndex = regexp(line,'NoG');
+    if lineIndex
+        NoG = strsplit(line);
+        NoG = str2double(NoG{3});
+        break
+    else
+        % Not correct line, keep searching.
+    end
+end
+frewind(fid);
+
+% Objective function type (objFunc).
+% Set possible options.
 objFuncOptions = {'Lift/Drag','Distortion','Maximum Lift','Minimum Drag','Maximum Downforce','Minimum Lift'};
-objFunc = objFuncOptions{objFunc};
-
-% Skip some lines.
-for i = 1:7
+while ~feof(fid)
     line = fgetl(fid);
+    lineIndex = regexp(line,'ObjectiveFunction');
+    if lineIndex
+        objFunc = strsplit(line);
+        objFunc = str2double(objFunc{3});
+        objFunc = objFuncOptions{objFunc};
+        break
+    else
+        % Not correct line, keep searching.
+    end
 end
+frewind(fid);
 
-% Solver parameters.
-turbModel = fgetl(fid);
-turbModel = strsplit(turbModel);
-turbModel = str2double(turbModel{3});
+% Turbulence model (turbModel).
+% Set possible options.
 turbModelOptions = {'Spalart-Allmaras','K-epsilon','SST'};
-turbModel = turbModelOptions{turbModel};
-
-NoSolIter = fgetl(fid);
-NoSolIter = strsplit(NoSolIter);
-NoSolIter = str2double(NoSolIter{3});
-
-% Skip some lines.
-for i = 1:6
+while ~feof(fid)
     line = fgetl(fid);
+    lineIndex = regexp(line,'turbulencemodel');
+    if lineIndex
+        turbModel = strsplit(line);
+        turbModel = str2double(turbModel{3});
+        turbModel = turbModelOptions{turbModel};
+        break
+    else
+        % Not correct line, keep searching.
+    end
 end
+frewind(fid);
 
-% Mesh deformation parameters.
-meshMove = fgetl(fid);
-meshMove = strsplit(meshMove);
-meshMove = str2double(meshMove{3});
+% Number of solver iterations (NoSolIter).
+while ~feof(fid)
+    line = fgetl(fid);
+    lineIndex = regexp(line,'NoIter');
+    if lineIndex
+        NoSolIter = strsplit(line);
+        NoSolIter = str2double(NoSolIter{3});
+        break
+    else
+        % Not correct line, keep searching.
+    end
+end
+frewind(fid);
+
+% Mesh movement parameter (meshMove).
+% Set possible options.
 meshMoveOptions = {'Linear with Smoothing','FDGD with Smoothing','RBF','FDGD, no Smoothing'};
-meshMove = meshMoveOptions{meshMove};
-
-% Skip some lines.
-for i = 1:12
+while ~feof(fid)
     line = fgetl(fid);
+    lineIndex = regexp(line,'MeshMovement');
+    if lineIndex
+        meshMove = strsplit(line);
+        meshMove = str2double(meshMove{3});
+        break
+    else
+        % Not correct line, keep searching.
+    end
 end
+frewind(fid);
 
-% User input strings.
-baselineMesh = fgetl(fid);
-baselineMesh = strsplit(baselineMesh,'''');
-baselineMesh = [baselineMesh{2},'.dat'];
+% Baseline mesh name (baselineMesh).
+while ~feof(fid)
+    line = fgetl(fid);
+    lineIndex = regexp(line,'MeshFileName');
+    if lineIndex
+        baselineMesh = strsplit(line,'''');
+        baselineMesh = [baselineMesh{2},'.dat'];
+        break
+    else
+        % Not correct line, keep searching.
+    end
+end
+frewind(fid);
 
 fclose(fid);
 
